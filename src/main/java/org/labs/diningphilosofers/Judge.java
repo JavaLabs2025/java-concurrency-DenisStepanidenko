@@ -1,5 +1,7 @@
 package org.labs.diningphilosofers;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -7,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Класс "Судья"
  * Решает давать ли право программисту взять обе ложки
  */
+@Slf4j
 public class Judge {
 
     /**
@@ -19,19 +22,20 @@ public class Judge {
      */
     private ReentrantLock[] spoons;
 
-    private Food food;
 
-    public Judge(int[] countOfServings, Food food) {
+    public Judge(int[] countOfServings) {
         this.countOfServings = countOfServings;
         spoons = new ReentrantLock[countOfServings.length];
-        Arrays.fill(spoons, new ReentrantLock());
-        this.food = food;
+
+        for (int i = 0; i < spoons.length; i++) {
+            spoons[i] = new ReentrantLock();
+        }
     }
 
-
+    /**
+     * Данный метод предоставляет программисту возможность попытаться взять две ложки для еды
+     */
     public boolean tryEat(int idProgrammer) {
-
-        System.out.println("Кол-во оставшихся порций " + food.getTotalCountOfFood());
 
         int leftSpoon = idProgrammer;
         int rightSpoon = (idProgrammer + 1) % (countOfServings.length - 1);
@@ -40,7 +44,7 @@ public class Judge {
 
             if (spoons[rightSpoon].tryLock()) {
 
-                System.out.println("Программист с id " + idProgrammer + " захватил ложку " + leftSpoon + " и " + rightSpoon);
+                log.debug("Программист с id {} захватил ложки {} и {}", idProgrammer, leftSpoon, rightSpoon);
 
                 return true;
             } else {
@@ -52,7 +56,10 @@ public class Judge {
 
     }
 
-    public void unlockSpoons(int idProgrammer) {
+    /**
+     * Данный метод представляет программисту возможность закончить приём пищи и отпустить две ложки + увеличить кол-во съеденных порций
+     */
+    public void unlockSpoonsWithIncreaseEatenPortions(int idProgrammer) {
 
         int leftSpoon = idProgrammer;
         int rightSpoon = (idProgrammer + 1) % (countOfServings.length - 1);
@@ -61,7 +68,24 @@ public class Judge {
         spoons[leftSpoon].unlock();
         spoons[rightSpoon].unlock();
 
-        System.out.println("Программист с id " + idProgrammer + " освободил ложку " + leftSpoon + " и " + rightSpoon);
+        log.debug("Программист с id {} освободил ложки {} и {}", idProgrammer, leftSpoon, rightSpoon);
 
     }
+
+    /**
+     * Данный метод представляет программисту возможность закончить приём пищи и отпустить две ложки
+     */
+    public void unlockSpoonsWithoutIncreaseEatenPortions(int idProgrammer) {
+
+        int leftSpoon = idProgrammer;
+        int rightSpoon = (idProgrammer + 1) % (countOfServings.length - 1);
+
+        spoons[leftSpoon].unlock();
+        spoons[rightSpoon].unlock();
+
+        log.debug("Программист с id {} освободил ложки {} и {}", idProgrammer, leftSpoon, rightSpoon);
+
+    }
+
+
 }

@@ -12,14 +12,18 @@ public class Waiter {
      * Параметры кол-во доступных порций
      * Предоставляет потокобезопасный метод проверки и уменьшения порций
      */
-    private Food food;
+    private final Food food;
 
     /**
      * Предоставляет из себя лок текущего официанта
      */
-    private ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
-    private int[] countOfServings;
+    /**
+     * Сколько скушал порций каждый программист
+     * Используется для того, чтобы примерно одинаково распределять еду программистам
+     */
+    private final int[] countOfServings;
 
 
     public Waiter(Food food, int[] countOfServings) {
@@ -27,9 +31,11 @@ public class Waiter {
         this.countOfServings = countOfServings;
     }
 
-
+    /**
+     * Метод в котором официант пытается выдать порцию еды программисту
+     * @return true, если порции ещё остались, false иначе.
+     */
     public boolean givePortion() {
-
         return food.decreaseCountOfFood();
     }
 
@@ -41,8 +47,13 @@ public class Waiter {
         lock.unlock();
     }
 
-
-    public boolean canEating(int idProgrammer) {
+    /**
+     * Сравнивает кол-во съеденных порций у данного программиста с самым голодным.
+     *
+     * @return true, если программист съел намного больше чем самый голодный, false иначе.
+     * (данный параметр при желании можно менять и задавать)
+     */
+    public boolean hasEatenTooMuch(int idProgrammer) {
 
         int minMeals = Integer.MAX_VALUE;
         for (int i = 1; i < countOfServings.length; i++) {
@@ -51,15 +62,14 @@ public class Waiter {
             }
         }
 
-        if (countOfServings[idProgrammer] > minMeals + 1) {
-            return false;
-        }
-
-        return true;
+        return countOfServings[idProgrammer] > minMeals + 1;
     }
 
-    public boolean hasFood() {
+    /**
+     * Проверяет наличие свободных порций
+     */
+    public boolean isFoodAvailable() {
 
-        return food.hasFood();
+        return food.isFoodAvailable();
     }
 }

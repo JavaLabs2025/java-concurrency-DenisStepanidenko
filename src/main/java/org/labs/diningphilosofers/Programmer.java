@@ -1,28 +1,34 @@
 package org.labs.diningphilosofers;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Programmer extends Thread {
 
     /**
      * Доступные официанты
      */
-    private Waiter[] waiters;
+    private final Waiter[] waiters;
 
     /**
      * Судья, который выдаёт разрешение на взятие обеих ложек
      */
-    private Judge judge;
+    private final Judge judge;
 
     /**
      * Сколько нужно циклов, чтобы скушать порцию
      */
-    private int totalCountOfUnitsOfServing;
+    private final int totalCountOfUnitsOfServing;
 
     /**
-     * Сколько на данный момент произошло циклов
+     * Сколько на данный момент произошло циклов для поедания одной порции
      */
     private int currentUnitsOfServing;
 
-    private int id;
+    /**
+     * Id программиста
+     */
+    private final int id;
 
     public Programmer(Waiter[] waiters, Judge judge, int totalCountOfUnitsOfServing, int id) {
         this.waiters = waiters;
@@ -37,48 +43,49 @@ public class Programmer extends Thread {
 
         try {
 
-            boolean flag = true;
-
-            while (flag) {
+            while (true) {
 
                 discussion();
 
-                // скушали всю порцию
+                // если скушали всю порцию, то пробуем попросить у какого-нибудь официанта ещё
                 if (currentUnitsOfServing == 0) {
 
-                    // пробуем попросить еды у официантов
-                    for (int i = 1; i < waiters.length; i++) {
+                    for (Waiter waiter : waiters) {
 
-                        Waiter waiter = waiters[i];
                         if (waiter.tryLock()) {
 
-                            if (waiter.canEating(id)) {
 
-                                if (waiter.givePortion()) {
-                                    currentUnitsOfServing = totalCountOfUnitsOfServing;
-                                    waiter.unlock();
-                                    break;
-                                } else {
+                            try {
 
-                                    // вот тут мы зашли в случае, если еды уже больше нет
-                                    System.out.println("Программист с id " + id + " получил сообщение, что еда закончилась. Выходит из цикла.");
-                                    waiter.unlock();
-                                    this.interrupt();
-                                    break;
+                                log.debug("Мы нашли официанта");
+                                // Программист может запросить новую порцию если выполненые следующие условия
+                                // 1) Кол-во порцию > 0
+                                // 2) Он не съел сильно больше других на текущий момент времени
+
+                                if (!waiter.hasEatenTooMuch(id)) {
+
+                                    if (waiter.givePortion()) {
+
+                                        log.info("Программист с id {} получил новую порцию еды.", id);
+                                        currentUnitsOfServing = totalCountOfUnitsOfServing;
+                                        break;
+                                    }
+
                                 }
 
-                            } else {
+                                if (!waiter.isFoodAvailable()) {
 
-                                if(!waiter.hasFood()){
-                                    waiter.unlock();
+                                    log.debug("Программист с id {} получил сообщение, что еда законичилась. Завершает поток.", id);
                                     this.interrupt();
                                     break;
+
                                 }
 
+
+                            } finally {
                                 waiter.unlock();
-                                System.out.println("Программист с id " + id + " пока что не может кушать, нужно подождать, чтобы другие наелись тоже.");
-                                break;
                             }
+
 
                         }
                     }
@@ -89,7 +96,8 @@ public class Programmer extends Thread {
 
                     // мы не смогли ни у одного из официантов получить еды, все заняты, попробуем позже
                     if (currentUnitsOfServing == 0) {
-                        System.out.println("Программист с id " + id + " не смог найти официанта доступного для порции/ слишком много скушал, начинает обсуждает преподавателей.");
+
+                        log.debug("Программист с id {} не смог найти официанта доступного для порции/ слишком много скушал, начинает обсуждает преподавателей.", id);
                         continue;
                     }
 
@@ -100,10 +108,15 @@ public class Programmer extends Thread {
 
                     eating();
 
-                    judge.unlockSpoons(id);
+                    if (currentUnitsOfServing == 0) {
+                        judge.unlockSpoonsWithIncreaseEatenPortions(id);
+                    } else {
+                        judge.unlockSpoonsWithoutIncreaseEatenPortions(id);
+                    }
+
 
                 } else {
-                    System.out.println("Программист с id " + id + " не смог захватить ложки. Идёт думать");
+                    log.debug("Программист с id {} не смог захватить ложки. Идёт думать", id);
 
                 }
             }
@@ -118,15 +131,19 @@ public class Programmer extends Thread {
     private void eating() throws InterruptedException {
 
         currentUnitsOfServing--;
-        System.out.println("Программист с id " + id + " начинает кушать");
-        Thread.sleep(10);
+        log.debug("Программист с id {} начинает кушать", id);
+
+        // Для бенчмарков убирать имитацию работы
+        //Thread.sleep(10);
 
     }
 
     private void discussion() throws InterruptedException {
 
-        System.out.println("Программист с id " + id + " начинает обсуждения преподавателей");
-        Thread.sleep(10);
+        log.debug("Программист с id {} начинает обсуждения преподавателей", id);
+
+        // Для бенчмарков убирать имитацию работы
+        //Thread.sleep(10);
 
     }
 }

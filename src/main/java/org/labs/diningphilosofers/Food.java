@@ -1,19 +1,20 @@
 package org.labs.diningphilosofers;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.locks.ReentrantLock;
 
+@Slf4j
 public class Food {
 
+    @Getter
     private int totalCountOfFood;
 
-    private ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
     public Food(int totalCountOfFood) {
         this.totalCountOfFood = totalCountOfFood;
-    }
-
-    public int getTotalCountOfFood() {
-        return totalCountOfFood;
     }
 
     public boolean decreaseCountOfFood() {
@@ -27,6 +28,8 @@ public class Food {
             }
 
             totalCountOfFood--;
+
+            log.debug("Количество оставшихся порций {}", totalCountOfFood);
             return true;
 
         } finally {
@@ -35,17 +38,9 @@ public class Food {
 
     }
 
-    public boolean hasFood() {
+    public boolean isFoodAvailable() {
 
-        lock.lock();
-
-        try {
-
-            return totalCountOfFood != 0;
-
-        } finally {
-            lock.unlock();
-        }
+        return totalCountOfFood > 0;
 
     }
 }
