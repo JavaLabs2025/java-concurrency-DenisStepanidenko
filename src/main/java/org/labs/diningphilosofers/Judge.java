@@ -13,23 +13,19 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Judge {
 
     /**
-     * Сколько порций скушал каждый программист
-     */
-    private int[] countOfServings;
-
-    /**
      * Ложки
      */
-    private ReentrantLock[] spoons;
+    private final ReentrantLock[] spoons;
 
 
-    public Judge(int[] countOfServings) {
-        this.countOfServings = countOfServings;
-        spoons = new ReentrantLock[countOfServings.length];
+    public Judge(int countOfProgrammers) {
+
+        spoons = new ReentrantLock[countOfProgrammers];
 
         for (int i = 0; i < spoons.length; i++) {
             spoons[i] = new ReentrantLock();
         }
+
     }
 
     /**
@@ -38,7 +34,7 @@ public class Judge {
     public boolean tryEat(int idProgrammer) {
 
         int leftSpoon = idProgrammer;
-        int rightSpoon = (idProgrammer + 1) % (countOfServings.length - 1);
+        int rightSpoon = (idProgrammer + 1) % spoons.length;
 
         if (spoons[leftSpoon].tryLock()) {
 
@@ -57,14 +53,13 @@ public class Judge {
     }
 
     /**
-     * Данный метод представляет программисту возможность закончить приём пищи и отпустить две ложки + увеличить кол-во съеденных порций
+     * Данный метод представляет программисту возможность закончить приём пищи и отпустить две ложки.
      */
-    public void unlockSpoonsWithIncreaseEatenPortions(int idProgrammer) {
+    public void unlockSpoons(int idProgrammer) {
 
         int leftSpoon = idProgrammer;
-        int rightSpoon = (idProgrammer + 1) % (countOfServings.length - 1);
+        int rightSpoon = (idProgrammer + 1) % spoons.length;
 
-        countOfServings[idProgrammer]++;
         spoons[leftSpoon].unlock();
         spoons[rightSpoon].unlock();
 
@@ -72,20 +67,6 @@ public class Judge {
 
     }
 
-    /**
-     * Данный метод представляет программисту возможность закончить приём пищи и отпустить две ложки
-     */
-    public void unlockSpoonsWithoutIncreaseEatenPortions(int idProgrammer) {
-
-        int leftSpoon = idProgrammer;
-        int rightSpoon = (idProgrammer + 1) % (countOfServings.length - 1);
-
-        spoons[leftSpoon].unlock();
-        spoons[rightSpoon].unlock();
-
-        log.debug("Программист с id {} освободил ложки {} и {}", idProgrammer, leftSpoon, rightSpoon);
-
-    }
 
 
 }
