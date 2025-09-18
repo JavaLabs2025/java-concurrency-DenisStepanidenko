@@ -1,18 +1,22 @@
-package org.labs.diningphilosofers;
+package org.labs.diningphilosofers.model;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+
+/**
+ * Класс для управления параметрами еды
+ */
 @Slf4j
+@Getter
 public class DiningContext {
 
     /**
      * Общее кол-во порций
      */
-    @Getter
-    private AtomicInteger totalCountOfFood;
+    private final AtomicInteger totalCountOfFood;
 
     /**
      * Сколько скушал каждый программист
@@ -34,12 +38,16 @@ public class DiningContext {
 
             int currentCount = totalCountOfFood.get();
             if (currentCount <= 0) {
+
                 return false;
             }
 
             if (totalCountOfFood.compareAndSet(currentCount, currentCount - 1)) {
+
+                log.debug("Количество оставшихся порций {}", totalCountOfFood.get());
                 return true;
             }
+
         }
 
     }

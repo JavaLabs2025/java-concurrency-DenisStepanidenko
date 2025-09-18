@@ -1,4 +1,4 @@
-package org.labs.diningphilosofers;
+package org.labs.diningphilosofers.model;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -18,7 +18,6 @@ public class Waiter {
      * Предоставляет из себя лок текущего официанта
      */
     private final ReentrantLock lock = new ReentrantLock();
-
 
 
     public Waiter(DiningContext diningContext) {

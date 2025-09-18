@@ -1,4 +1,4 @@
-package org.labs.diningphilosofers;
+package org.labs.diningphilosofers.model;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -153,6 +153,9 @@ public class Programmer extends Thread {
         return currentUnitsOfServing <= 0;
     }
 
+    /**
+     * Процесс приёма еды
+     */
     private void eating() throws InterruptedException {
 
         currentUnitsOfServing--;
@@ -163,6 +166,9 @@ public class Programmer extends Thread {
 
     }
 
+    /**
+     * Процесс обсуждения преподавателей
+     */
     private void discussion() throws InterruptedException {
 
         log.debug("Программист с id {} начинает обсуждения преподавателей", id);
